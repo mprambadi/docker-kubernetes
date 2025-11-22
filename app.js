@@ -3,7 +3,7 @@ const app = express();
 
 app.get('/', (req, res) => {
     res.json({ 
-        message: 'Hello Docker!', 
+        message: 'Hello Docker! from CI', 
         container: process.env.HOSTNAME 
     });
 });

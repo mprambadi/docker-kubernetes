@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quick-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: quick-app
+  template:
+    metadata:
+      labels:
+        app: quick-app
+    spec:
+      containers:
+      - name: app
+        image: quick-app:latest
+        ports:
+        - containerPort: 3000
+        imagePullPolicy: Never
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: quick-app-service
+spec:
+  selector:
+    app: quick-app
+  ports:
+  - port: 80
+    targetPort: 3000
+  type: LoadBalancer

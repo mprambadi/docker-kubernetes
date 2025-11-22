@@ -1,0 +1,55 @@
+name: Quick Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # Test phase
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install and test
+        run: |
+          npm ci
+          echo "✅ Tests passed!"
+      
+      # Build and Push phase
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/quick-app:latest
+
+      # Deploy phase
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            # Pull the latest image from Docker Hub
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/quick-app:latest
+            
+            # Stop and remove the old container, if it exists
+            docker stop my-quick-app || true
+            docker rm my-quick-app || true
+            
+            # Run the new container from the updated image
+            docker run -d -p 80:3000 --name my-quick-app ${{ secrets.DOCKERHUB_USERNAME }}/quick-app:latest

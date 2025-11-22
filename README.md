@@ -84,7 +84,7 @@ spec:
   ports:
   - port: 80
     targetPort: 3000
-  type: LoadBalancer
+  type: NodePort
 EOF
 ```
 
@@ -170,5 +170,5 @@ jobs:
             docker rm my-quick-app || true
             
             # Run the new container from the updated image
-            docker run -d -p 80:3000 --name my-quick-app ${{ secrets.DOCKERHUB_USERNAME }}/quick-app:latest
+            docker run -d -p 3000:3000 --name my-quick-app ${{ secrets.DOCKERHUB_USERNAME }}/quick-app:latest
 ```
